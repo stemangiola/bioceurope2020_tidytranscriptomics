@@ -1,0 +1,10 @@
+.Rproj.user
+doc
+Meta
+.RData
+.Rhistory
+*.Rproj
+bioceurope2020tidytranscriptomics.Rcheck/
+bioceurope2020tidytranscriptomics*.tar.gz
+bioceurope2020tidytranscriptomics*.tgz
+dev

@@ -1,0 +1,31 @@
+url: https://stemangiola.github.io/bioceurope2020_tidytranscriptomics
+
+template:
+  params:
+    bootswatch: flatly
+    ganalytics: UA-93043521-1
+
+home:
+  title: "TidyTranscriptomics"
+  type: inverse
+  
+toc:
+  depth: 4
+  
+navbar:
+  title: ~
+  type: default
+  left:
+    - text: Background
+      href: articles/background.html
+    - text: Workshop
+      href: articles/tidytranscriptomics.html
+    - text: Solutions 
+      href: articles/solutions.html
+
+  right:
+   - icon: fa-github
+     href: https://github.com/stemangiola/bioceurope2020_tidytranscriptomics
+   - icon: fa-docker
+     href: https://hub.docker.com/repository/docker/stemangiola/bioceurope2020_tidytranscriptomics
+    

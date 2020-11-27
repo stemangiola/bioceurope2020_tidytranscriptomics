@@ -1,0 +1,308 @@
+---
+title: "Solutions"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Solutions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+Answers to the workshop poll questions are below. You might have some different code that obtains the same answer. Feel free to comment on any of these solutions in the workshop website as described [here](https://github.com/stemangiola/bioceurope2020_tidytranscriptomics/blob/master/CONTRIBUTING.md).
+
+```{r eval=FALSE}
+# load libraries
+library(airway)
+
+# tidyverse core packages
+library(tibble)
+library(dplyr)
+library(tidyr)
+library(readr)
+library(stringr)
+library(purrr)
+library(ggplot2)
+
+# tidyverse-friendly packages
+library(plotly)
+library(ggrepel)
+library(tidyHeatmap)
+library(tidybulk)
+```
+
+# Part 1 Bulk RNA-seq
+
+
+```{r eval = FALSE}
+# Set up data
+data("airway")
+
+counts_tt <-
+  airway %>%
+  tidybulk() %>%
+  mutate(sample = str_remove(sample, "SRR1039")) %>%
+  mutate(symbol = AnnotationDbi::mapIds(org.Hs.eg.db::org.Hs.eg.db,
+    keys = as.character(feature),
+    keytype = "ENSEMBL",
+    column = "SYMBOL",
+    multiVals = "first"
+  )) %>%
+  # filter
+  keep_abundant(factor_of_interest = dex)
+```
+
+### Poll 2
+
+What fraction of variance is explained by PC3?
+
+```{r eval = FALSE}
+# Solution
+counts_scal_PCA <-
+  counts_tt %>%
+  scale_abundance() %>%
+  reduce_dimensions(method = "PCA", .dims = 3)
+```
+
+### Poll 3
+
+Which method detects the most differentially abundant transcripts, p value adjusted for multiple testing <  0.05 (FDR, adj.P.Val, padj)?
+
+```{r, eval=FALSE}
+# Set up data
+de_all <-
+
+  counts_scal_PCA %>%
+
+  # edgeR QLT
+  test_differential_abundance(
+    ~ dex + cell,
+    method = "edger_quasi_likelihood",
+    prefix = "edgerQLT_"
+  ) %>%
+
+  # edgeR LRT
+  test_differential_abundance(
+    ~ dex + cell,
+    method = "edger_likelihood_ratio",
+    prefix = "edgerLR_"
+  ) %>%
+
+  # limma-voom
+  test_differential_abundance(
+    ~ dex + cell,
+    method = "limma_voom",
+    prefix = "voom_"
+  ) %>%
+
+  # DESeq2
+  test_differential_abundance(
+    ~ dex + cell,
+    method = "deseq2",
+    prefix = "deseq2_"
+  )
+```
+
+```{r eval=FALSE}
+# Solution
+de_all %>%
+
+  # Subset transcript information
+  pivot_transcript() %>%
+
+  # Reshape for nesting
+  pivot_longer(
+    cols = -c(feature, .abundant, albut, symbol),
+    names_sep = "_",
+    names_to = c("method", "statistic"),
+    values_to = "value"
+  ) %>%
+
+  # Filter statistic
+  filter(statistic %in% c("FDR", "adj.P.Val", "padj")) %>%
+  filter(value < 0.05) %>%
+
+  # Nesting
+  count(method)
+```
+
+### Poll 4
+
+What is the most abundant cell type overall in BRCA samples?
+
+```{r eval=FALSE}
+# Set up data
+BRCA_cell_type_long <-
+
+  # Create tidybulk object
+  bioceurope2020tidytranscriptomics::BRCA %>%
+  tidybulk(patient, transcript, count) %>%
+
+  # Detect cell types
+  deconvolve_cellularity(action = "get", cores = 1) %>%
+
+  # Reshape
+  pivot_longer(
+    contains("cibersort"),
+    names_prefix = "cibersort: ",
+    names_to = "cell_type",
+    values_to = "proportion"
+  )
+```
+
+
+```{r eval=FALSE}
+# Solution
+BRCA_cell_type_long %>%
+  group_by(cell_type) %>%
+  summarise(m = median(proportion)) %>%
+  dplyr::arrange(dplyr::desc(m))
+```
+
+## Part 2 Single-cell RNA-seq
+
+### Poll 5
+
+What is the ID of the cell with the highest mitochondrial relative content?
+
+```{r eval=FALSE}
+# load additional libraries
+library(bioceurope2020tidytranscriptomics)
+library(dplyr)
+library(ggplot2)
+library(purrr)
+library(stringr)
+library(Seurat)
+library(SingleR)
+library(scuttle)
+library(EnsDb.Hsapiens.v86)
+library(celldex)
+library(tidyseurat)
+
+
+# Set up data
+pbmc_tidy_clean <-
+  bioceurope2020tidytranscriptomics::pbmc %>%
+  tidy() %>%
+
+  # Extract sample and group
+  extract(file, "sample", "../data/([a-zA-Z0-9_]+)/outs.+", remove = FALSE) %>%
+
+  # Extract data source
+  extract(file, c("dataset", "groups"), "../data/([a-zA-Z0-9_]+)_([0-9])/outs.+")
+
+
+# Gene product location
+location <- mapIds(
+  EnsDb.Hsapiens.v86,
+  keys = rownames(pbmc_tidy_clean),
+  column = "SEQNAME",
+  keytype = "SYMBOL"
+)
+
+pbmc_annotated <-
+  pbmc_tidy_clean %>%
+
+  # Grouping - nesting
+  nest(data = -dataset) %>%
+  mutate(data = map(
+    data,
+
+    # Join mitochondrion statistics
+    ~ left_join(
+      .x,
+      # Calculating metrics
+      perCellQCMetrics(.@assays$RNA@counts, subsets = list(Mito = which(location == "MT"))) %>%
+        as_tibble(rownames = "cell"),
+      by = "cell"
+    ) %>%
+
+      # Label cells
+      mutate(high_mitochondrion = isOutlier(subsets_Mito_percent, type = "higher"))
+  )) %>%
+
+  # Ungroup
+  unnest(data)
+```
+
+```{r eval = FALSE}
+# Solution
+pbmc_annotated %>%
+  filter(subsets_Mito_percent == max(subsets_Mito_percent)) %>%
+  select(cell, subsets_Mito_percent)
+```
+
+### Poll 6 
+
+How many cells are classified differently by SingleR when analyses are done by cluster (as above) or by cell (omitting the argument `clusters`). Tip: you can answer this question without creating any variable, using left_join.
+
+```{r eval=FALSE}
+# Set up data
+pbmc_alive <- pbmc_annotated %>% filter(!high_mitochondrion)
+
+pbmc_scaled_nested <-
+  pbmc_alive %>%
+  mutate(batch = dataset) %>%
+  nest(data = -batch) %>%
+  mutate(data = map(data, ~ SCTransform(.x, verbose = FALSE)))
+
+integration_features <- SelectIntegrationFeatures(pbmc_scaled_nested$data)
+
+pbmc_integrated <-
+  PrepSCTIntegration(pbmc_scaled_nested$data, anchor.features = integration_features) %>%
+  FindIntegrationAnchors(
+    normalization.method = "SCT",
+    anchor.features = integration_features,
+    reference = 3
+  ) %>%
+  IntegrateData(normalization.method = "SCT") %>%
+  tidy()
+
+pbmc_UMAP <-
+  pbmc_integrated %>%
+  RunPCA(verbose = FALSE) %>%
+  RunUMAP(reduction = "pca", dims = 1:15, n.components = 3L)
+
+pbmc_cluster <-
+  pbmc_UMAP %>%
+  FindNeighbors(verbose = FALSE) %>%
+  FindClusters(method = "igraph", verbose = FALSE)
+
+blueprint <- BlueprintEncodeData()
+```
+
+```{r eval = FALSE}
+# Solution
+pbmc_cluster %>%
+  left_join(
+    pbmc_cluster@assays[["SCT"]]@counts %>%
+      log1p() %>%
+
+      # SingleR
+      SingleR(
+        ref = blueprint,
+        labels = blueprint$label.main,
+        clusters = pbmc_cluster$seurat_clusters
+      ) %>%
+
+      # Formatting results
+      as.data.frame() %>%
+      as_tibble(rownames = "seurat_clusters") %>%
+      select(seurat_clusters, cluster_cell_type = first.labels)
+  ) %>%
+  left_join(
+    pbmc_cluster@assays[["SCT"]]@counts %>%
+      log1p() %>%
+
+      # SingleR
+      SingleR(
+        ref = blueprint,
+        labels = blueprint$label.main
+      ) %>%
+
+      # Formatting results
+      as.data.frame() %>%
+      as_tibble(rownames = "cell") %>%
+      select(cell, cell_cell_type = first.labels)
+  ) %>%
+  filter(cluster_cell_type != cell_cell_type) %>%
+  nrow()
+```

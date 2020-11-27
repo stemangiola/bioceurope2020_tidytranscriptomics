@@ -5,7 +5,7 @@
 
 # Introduction to Tidy Transcriptomics
 <p float="left">
-<img height="100" alt="bioceurope2020" src="man/figures/bioceurope-glow-logo-200x200.png"/> 
+<img height="100" alt="bioceurope2020" src="https://github.com/Bioconductor/BiocStickers/blob/1fbe063f7012824cdd8962fe1d67187f61ca43a6/events/EuroBioc2020/EuroBioc2020.png"/> 
 <img height="100" alt="tidybulk" src="https://github.com/Bioconductor/BiocStickers/blob/master/tidybulk/tidybulk.png?raw=true"/>
 </p>
 

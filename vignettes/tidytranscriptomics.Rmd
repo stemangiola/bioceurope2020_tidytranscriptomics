@@ -34,7 +34,7 @@ background-color: #fff4d4;
 Background information and setup instructions for this workshop can be found [here](https://stemangiola.github.io/bioceurope2020_tidytranscriptomics/articles/background.html).
 
 
-# Part 1 Bulk RNA-seq
+# Part 1 Bulk RNA-seq with tidybulk
 
 This workshop will present how to perform analysis of RNA sequencing data following the tidy data paradigm [@wickham2014tidy]. The tidy data paradigm provides a standard way to organise data values within a dataset, where each variable is a column, each observation is a row, and data is manipulated using an easy-to-understand vocabulary. Most importantly, the data structure remains consistent across manipulation and analysis functions.
 
@@ -782,8 +782,117 @@ BRCA_tidy_survival %>%
 ## Supplementary
 Some things we don't have time to cover in Part 1 of this workshop can be found in the [Supplementary material](https://stemangiola.github.io/bioceurope2020_tidytranscriptomics/articles/supplementary.html).
 
+# Part 2 Bulk RNA-seq with tidySummarizedExperiment and Bioconductor
 
-# Part 2 Single-cell RNA-seq
+# Tidify `SummarizedExperiment` into `tidySummarizedExperiment`
+
+This is a SummarizedExperiment object but it is evaluated as tibble. So it is fully compatible both with SummarizedExperiment and tidyverse APIs. 
+
+```{r}
+library(tidySummarizedExperiment)
+pasilla_tidy <- airway %>% tidy()
+```
+
+**It looks like a tibble**
+
+```{r}
+pasilla_tidy
+```
+
+**But it is a SummarizedExperiment object after all**
+
+```{r}
+assays(pasilla_tidy)
+```
+
+
+# Tidyverse commands
+
+We can use tidyverse commands to explore the tidy SummarizedExperiment object.
+
+We can use `slice` to choose rows by position, for example to choose the first row.
+
+```{r}
+pasilla_tidy %>% slice(1)
+```
+
+We can use `filter` to choose rows by criteria.
+
+```{r}
+pasilla_tidy %>% filter(dex == "untrt")
+```
+
+We can use `select` to choose columns.
+
+```{r}
+pasilla_tidy %>% select(sample)
+```
+
+We can use `count` to count how many rows we have for each sample.
+
+```{r}
+pasilla_tidy %>% count(sample)
+```
+
+We can use `distinct` to see what distinct sample information we have.
+
+```{r}
+pasilla_tidy %>% distinct(sample, dex, cell)
+```
+
+We could use `rename` to rename a column. For example, to modify the type column name.
+
+```{r}
+pasilla_tidy %>% rename(treatment_status=dex)
+```
+
+We could use `mutate` to create a column. For example, we could create a new type column that contains single
+and paired instead of single_end and paired_end.
+
+```{r}
+pasilla_tidy %>% mutate(type=str_remove(sample, "SRR1039"))
+```
+
+We could use `unite` to combine multiple columns into a single column.
+
+```{r}
+pasilla_tidy %>% unite("combined", c(dex, cell))
+```
+
+We can also combine commands with the tidyverse pipe `%>%`.
+
+For example, we could combine `group_by` and `summarise` to get the total counts for each sample.
+
+```{r}
+pasilla_tidy %>%
+    group_by(sample) %>%
+    summarise(total_counts=sum(counts))
+```
+
+We could combine `group_by`, `mutate` and `filter` to get the transcripts with mean count > 0.
+
+```{r}
+pasilla_tidy %>%
+    group_by(seqnames ) %>%
+    mutate(mean_count=mean(counts)) %>%
+    filter(mean_count > 0)
+```
+
+
+## Plotting
+
+We can treat `pasilla_tidy` as a normal tibble for plotting. Here we plot the distribution of counts per sample.
+
+```{r plot1}
+pasilla_tidy %>%
+    ggplot(aes(counts + 1, group=sample, color=`dex`)) +
+    geom_density() +
+    scale_x_log10() +
+    custom_theme
+```
+
+
+# Part 3 Single-cell RNA-seq with tidySingleCellExperiment
 
 [Background information](https://stemangiola.github.io/bioceurope2020_tidytranscriptomics/articles/background.html#differences-between-bulk-and-single-cell-rna-sequencing-1)
 
@@ -803,12 +912,18 @@ library(dplyr)
 library(ggplot2)
 library(purrr)
 library(stringr)
-library(Seurat)
+library(SummarizedExperiment)
+library(SingleCellExperiment)
+library(scater)
+library(scran)
+library(igraph)
+library(batchelor)
 library(SingleR)
 library(scuttle)
 library(EnsDb.Hsapiens.v86)
 library(celldex)
-library(tidyseurat)
+library(ggbeeswarm)
+library(tidySingleCellExperiment)
 ```
 
 
@@ -836,10 +951,10 @@ pbmc_tidy
 
 **But it is a Seurat object after all**
 
-So it can be interacted with using [Seurat commands](https://rdrr.io/cran/Seurat/man/Assays.html) such as `Assays`.
+So it can be interacted with using [SingleCellExperiment commands](https://bioconductor.org/packages/release/bioc/vignettes/SingleCellExperiment/inst/doc/intro.html) such as `assayNames`.
 
 ```{r}
-Assays(pbmc_tidy)
+assayNames(pbmc_tidy) # from SummarizedExperiment
 ```
 
 ## Polish the data
@@ -847,7 +962,7 @@ Assays(pbmc_tidy)
 We can also interact with our object as we do with any tidyverse tibble. In this case we want to polish an annotation column. We will extract the sample and dataset names from the file name column into separate columns.
 
 ```{r}
-pbmc_tidy_clean <-
+pbmc_tidy <-
   pbmc_tidy %>%
 
   # Extract sample and group
@@ -856,7 +971,7 @@ pbmc_tidy_clean <-
   # Extract data source
   extract(file, c("dataset", "groups"), "../data/([a-zA-Z0-9_]+)_([0-9])/outs.+")
 
-pbmc_tidy_clean
+pbmc_tidy
 ```
 
 ## Quality control
@@ -867,20 +982,20 @@ A key quality control step performed in single cell analysis is assessment of th
 # Get chromosomal location for gene symbols
 location <- mapIds(
   EnsDb.Hsapiens.v86,
-  keys = rownames(pbmc_tidy_clean),
+  keys = rownames(pbmc_tidy),
   column = "SEQNAME",
   keytype = "SYMBOL"
 )
 
-pbmc_annotated <-
-  pbmc_tidy_clean %>%
+pbmc_tidy <-
+  pbmc_tidy %>%
 
   # Grouping - nesting by dataset
   nest(data = -dataset) %>%
   mutate(mitochondrion_info = map(
     data,
     ~ # Calculating mitochondrial statistics
-      perCellQCMetrics(.x@assays$RNA@counts, subsets = list(Mito = which(location == "MT"))) %>%
+      perCellQCMetrics(.x, subsets = list(Mito = which(location == "MT"))) %>%
       
       # Converting to tibble
       as_tibble(rownames = "cell") %>%
@@ -903,7 +1018,7 @@ pbmc_annotated <-
 We can use tidyverse to reshape the data and create beeswarm plots to visualise the mitochondrial content. 
 
 ```{r, warning=FALSE}
-pbmc_annotated %>%
+pbmc_tidy %>%
 
   # Reshaping
   pivot_longer(c(detected, sum, subsets_Mito_percent)) %>%
@@ -915,7 +1030,7 @@ pbmc_annotated %>%
   )) +
 
   # Plotting
-  ggbeeswarm::geom_quasirandom() +
+  geom_quasirandom() +
   facet_wrap(~name, scale = "free_y") +
 
   # Customisation
@@ -934,7 +1049,7 @@ What is the ID of the cell with the highest mitochondrial relative content?
 We filter out cells with high mitochondrial content.
 
 ```{r}
-pbmc_alive <- pbmc_annotated %>% filter(!high_mitochondrion)
+pbmc_tidy <- pbmc_tidy %>% filter(!high_mitochondrion)
 ```
 
 ## Scaling and Integrating
@@ -943,39 +1058,23 @@ We need to integrate the different datasets to adjust for technical variability 
 
 ```{r preprocess seurat, message=FALSE, warning=FALSE}
 # Scaling within each dataset
-pbmc_scaled_nested <-
-  pbmc_alive %>%
+pbmc_tidy <-
+  pbmc_tidy %>%
 
   # Define batch
   mutate(batch = dataset) %>%
   nest(data = -batch) %>%
 
-  # Scaling for each dataset
-  mutate(data = map(data, ~ SCTransform(.x, verbose = FALSE)))
+  # Normalisation   
+  mutate(data = multiBatchNorm(data)) %>%
 
+  pull(data) %>%
+  
+  fastMNN() %>%
 
-# Select features (genes)
-integration_features <- SelectIntegrationFeatures(pbmc_scaled_nested$data)
-
-
-# Integrating across the datasets
-pbmc_integrated <-
-
-  # Preparation
-  PrepSCTIntegration(pbmc_scaled_nested$data, anchor.features = integration_features) %>%
-
-  # Anchors identification
-  FindIntegrationAnchors(
-    normalization.method = "SCT",
-    anchor.features = integration_features,
-    reference = 3
-  ) %>%
-
-  # Integrate
-  IntegrateData(normalization.method = "SCT") %>%
-
-  # Tidify again
   tidy()
+
+
 ```
 
 ## Reduce dimensions
@@ -983,22 +1082,22 @@ pbmc_integrated <-
 Besides PCA which is a linear dimensionality reduction, we can apply neighbour aware methods such as UMAP, to better define locally similar cells. We can calculate the first 3 UMAP dimensions using the Seurat framework.
 
 ```{r umap seurat, warning=FALSE}
-pbmc_UMAP <-
-  pbmc_integrated %>%
-  RunPCA(verbose = FALSE) %>%
-  RunUMAP(reduction = "pca", dims = 1:15, n.components = 3L)
+# Perform PCA with scater
+pbmc_tidy <-
+  pbmc_tidy %>%
+  runUMAP(ncomponents = 3, dimred="corrected") # from scater
 ```
 
 And we can plot the output as a 3D plot using plotly. With this we can check if the datasets are clustering independently, indicating a batch effect, or if they are mixed together and cells are clustering by cell type.
 
 ```{r umap plot seurat, eval=FALSE}
-pbmc_UMAP %>%
+pbmc_tidy %>%
   plot_ly(
-    x = ~`UMAP_1`,
-    y = ~`UMAP_2`,
-    z = ~`UMAP_3`,
+    x = ~`UMAP1`,
+    y = ~`UMAP2`,
+    z = ~`UMAP3`,
     colors = friendly_cols[1:10],
-    color = ~dataset
+    color = ~batch
   )
 ```
 
@@ -1011,32 +1110,38 @@ knitr::include_graphics("../inst/vignettes/plotly_1.png")
 
 We proceed with cluster identification with Seurat. FindNeighbors constructs a Shared Nearest Neighbor (SNN) Graph for a given dataset. The k-nearest neighbours of each cell are first determined. FindClusters identifies clusters of cells by a shared nearest neighbour (SNN). 
 
-```{r cluster seurat}
-pbmc_cluster <-
-  pbmc_UMAP %>%
-  FindNeighbors(verbose = FALSE) %>%
-  FindClusters(method = "igraph", verbose = FALSE)
+```{r cluster}
+# Assign clusters to the 'colLabels'
+# of the SingleCellExperiment object
+colLabels(pbmc_tidy) <- # from SingleCellExperiment
+  pbmc_tidy %>%
+  buildSNNGraph(use.dimred="corrected") %>% # from scran - shared nearest neighbour
+  cluster_walktrap() %$% # from igraph
+  membership %>%
+  as.factor()
 
-pbmc_cluster
+# Reorder columns
+pbmc_tidy %>% select(label, everything())
 ```
+
 
 Now we can interrogate the object as if it was a regular tibble data frame.
 
 ```{r cluster count seurat}
-pbmc_cluster %>%
-  count(dataset, groups, seurat_clusters)
+pbmc_tidy %>%
+  count(label)
 ```
 
 And we can plot the clusters as a 3D plot using plotly. This time we are colouring by estimated cluster labels to visually check the cluster labels.
 
 ```{r umap plot 2, eval=FALSE}
-pbmc_cluster %>%
+pbmc_tidy %>%
   plot_ly(
-    x = ~`UMAP_1`,
-    y = ~`UMAP_2`,
-    z = ~`UMAP_3`,
+    x = ~`UMAP1`,
+    y = ~`UMAP2`,
+    z = ~`UMAP3`,
     colors = friendly_cols[1:10],
-    color = ~seurat_clusters
+    color = ~label
   )
 ```
 
@@ -1052,20 +1157,22 @@ We can identify cluster markers (genes) using Seurat. As example, we are selecti
 
 ```{r}
 # Identify top 10 markers per cluster
-markers <-
-  pbmc_cluster %>%
-  FindAllMarkers() %>%
-  group_by(cluster) %>%
-  top_n(10, avg_logFC)
-
-markers
+marker_genes <-
+    pbmc_tidy %>%
+    findMarkers(groups=pbmc_tidy$label, assay.type = "reconstructed") %>%
+    as.list() %>%
+    map(~ head(.x, 10) %>%  rownames()) %>%
+    unlist()
 
 # Plot heatmap
-pbmc_cluster %>%
-  DoHeatmap(
-    features = markers$gene,
-    group.colors = friendly_cols
-  )
+pbmc_tidy %>%
+  plotHeatmap(                                  # from scater
+    features=marker_genes, 
+    columns=order(pbmc_tidy$label), 
+    colour_columns_by=c("label"), 
+    exprs_values  = "reconstructed"
+  ) 
+
 ```
 
 ### Automatic cell type classification
@@ -1076,41 +1183,40 @@ We can infer cell type identities (e.g. T cell) using *SingleR* [@aran2019refere
 # Reference cell types
 blueprint <- BlueprintEncodeData()
 
-cell_type_df_seurat <-
+cell_type <-
+    
+  # extracting counts from SingleCellExperiment object
+  assays(pbmc_tidy)$reconstructed%>%
 
-  # Extracting counts from Seurat object
-  pbmc_cluster@assays[["SCT"]]@counts %>%
-  log1p() %>%
-
-  # SingleR
+    # SingleR
   SingleR(
     ref = blueprint,
     labels = blueprint$label.main,
-    clusters = pbmc_cluster$seurat_clusters
+    clusters = pbmc_tidy %>% pull(label)
   ) %>%
-
-  # Formatting results
+    
+    # Formatting results
   as.data.frame() %>%
-  as_tibble(rownames = "seurat_clusters") %>%
-  select(seurat_clusters, first.labels)
+  as_tibble(rownames = "label") %>%
+  select(label, first.labels)
 ```
 
 We join the cluster label dataframe to our tidyseurat tibble.
 
 ```{r}
 # Join cell type info
-pbmc_cell_type <-
-  pbmc_cluster %>%
-  left_join(cell_type_df_seurat, by = "seurat_clusters")
+pbmc_tidy <-
+  pbmc_tidy %>%
+  left_join(cell_type, by = "label")
 
 # Reorder columns
-pbmc_cell_type %>% select(cell, first.labels, everything())
+pbmc_tidy %>% select(cell, first.labels, everything())
 ```
 
 We can easily summarise the results. For example, we can see how cell type classification overlaps with cluster classification.
 
 ```{r}
-pbmc_cell_type %>% count(seurat_clusters, first.labels)
+pbmc_tidy %>% count(label, first.labels)
 ```
 
 ```{poll_6 class.source="poll"}
@@ -1128,235 +1234,25 @@ To do this, we will load a helper function called `aggregate_cells` from [GitHub
 
 ```{r warning=FALSE, message=FALSE}
 # Load aggregate function
-devtools::source_gist("ebce5a3f931b298611b56680d39c073c")
+devtools::source_gist("889e4089a0e5ca2649d3c9164e3b542e")
 
-bulk_scaled <-
-  pbmc_cell_type %>%
-  aggregate_cells(sample) %>%
-  tidybulk::identify_abundant(sample, transcript, abundance_RNA, factor_of_interest = groups) %>%
-  tidybulk::scale_abundance(sample, transcript, abundance_RNA)
+# Aggregate
+pbmc_bulk = 
+  tidy(pbmc) %>% 
+  aggregate_cells(file) 
 
-bulk_scaled
+pbmc_bulk
 ```
-
-We create a PCA plot to explore the data. 
 
 ```{r}
-bulk_scaled %>%
 
-  # Select variable genes
-  tidybulk::keep_variable(sample, transcript, abundance_RNA_scaled, top = 500) %>%
-
-  # Take all genes with PCA
-  tidybulk::reduce_dimensions(sample, transcript, abundance_RNA_scaled, method = "PCA", action = "get") %>%
-  ggplot(aes(PC1, PC2, color = dataset, label = sample)) +
-  geom_text() +
-  custom_theme +
-  theme(aspect.ratio = 1)
+pbmc_bulk %>%
+  
+  # Tidybulk operations
+  tidybulk(file, transcript, abundance_counts) %>%
+  tidybulk::identify_abundant() %>%
+  tidybulk::scale_abundance()
 ```
-
-### Pseudobulk differential abundance analyses
-
-We aggregate by sample name and cell type to perform differential expression analysis, comparing pseudo-samples independently for each cell type.. 
-
-```{r message=FALSE, warning=FALSE}
-bulk_cell_type <-
-  pbmc_cell_type %>%
-  aggregate_cells(c(sample, first.labels))
-
-# Scaling
-bulk_test <-
-
-  bulk_cell_type %>%
-  nest(data = -first.labels) %>%
-
-  # Nested analyses
-  mutate(test = map(
-    data,
-    ~ .x %>%
-      tidybulk(sample, transcript, abundance_RNA) %>%
-
-      # Filtering and scaling
-      tidybulk::keep_abundant(factor_of_interest = groups) %>%
-      tidybulk::scale_abundance() %>%
-
-      # Hypothesis test using default method (edgeR)
-      tidybulk::test_differential_abundance(~groups, action = "get") %>%
-      slice_head(n = 5)
-  ))
-
-# see what top genes are
-bulk_test %>%
-  select(-data) %>%
-  unnest(test)
-```
-
-## Analyses using Bioconductor and tidySingleCellExperiment
-
-As an alternative to Seurat, Bioconductor's SingleCellExperiment is a very popular container for single cell RNA sequencing data [@sce]. tidySingleCellExperiment provides a bridge between the SingleCellExperiment single-cell package [@sce] and the tidyverse [@wickham2019welcome]. It enables the display of the
-SingleCellExperiment object as a tidyverse tibble, and provides SingleCellExperiment-compatible *dplyr*, *tidyr*, *ggplot* and *plotly* functions. Below we show how to perform similar steps to what we already did with Seurat, but this time using tidySingleCellExperiment and Bioconductor packages.
-
-
-```{r message=FALSE, warning=FALSE}
-# load additional libraries
-library(bioceurope2020tidytranscriptomics)
-library(dplyr)
-library(purrr)
-library(stringr)
-library(SummarizedExperiment)
-library(SingleCellExperiment)
-library(scater)
-library(scran)
-library(igraph)
-library(SingleR)
-library(tidySingleCellExperiment)
-```
-
-### Create `tidySingleCellExperiment`
-
-This is a SingleCellExperiment object but it is evaluated as tibble. So it is fully compatible both with SingleCellExperiment and tidyverse APIs. 
-
-```{r}
-pbmc_small_tidy <- bioceurope2020tidytranscriptomics::pbmc_small_sce %>% tidy()
-```
-
-**It looks like a tibble**
-
-```{r}
-pbmc_small_tidy
-```
-
-**But it is a SingleCellExperiment object after all**
-
-So it can be interacted with using [SingleCellExperiment commands](https://bioconductor.org/packages/release/bioc/vignettes/SingleCellExperiment/inst/doc/intro.html) such as `assayNames`.
-
-```{r}
-assayNames(pbmc_small_tidy) # from SummarizedExperiment
-```
-
-### Polish the data
-
-We can interact with our object as we do with any tibble. In this case we want to polish an annotation column.
-
-```{r}
-pbmc_small_polished <-
-  pbmc_small_tidy %>%
-
-  # Clean groups
-  mutate(groups = groups %>% str_remove("^g")) %>%
-
-  # Extract sample
-  extract(file, "sample", "../data/sample([a-z0-9]+)/outs.+")
-
-pbmc_small_polished
-```
-
-### Scaling
-
-We can treat `pbmc_small_polished` as a SingleCellExperiment object and calculate the log counts.
-
-```{r}
-counts <- assay(pbmc_small_polished, "counts")
-libsizes <- colSums(counts)
-size.factors <- libsizes / mean(libsizes)
-logcounts(pbmc_small_polished) <- log2(t(t(counts) / size.factors) + 1)
-assayNames(pbmc_small_polished)
-```
-
-### Exploratory analyses
-
-Here we plot abundance of two transcripts for each group.
-
-```{r}
-pbmc_small_polished_abundance <-
-  pbmc_small_polished %>%
-
-  # Extract abundance
-  join_transcripts(transcripts = c("HLA-DRA", "TCL1A"))
-
-pbmc_small_polished_abundance
-```
-
-We proceed to plot. 
-
-```{r}
-pbmc_small_polished_abundance %>%
-  ggplot2::ggplot(aes(groups, abundance_counts + 1, fill = groups)) +
-  geom_boxplot(outlier.shape = NA) +
-  geom_jitter(alpha = 0.5, width = 0.2) +
-  scale_y_log10() +
-  facet_wrap(~transcript, scales = "free_y") +
-  custom_theme
-```
-
-### Reduce dimensions
-
-#### PCA
-
-We proceed with data processing with Bioconductor packages, such as *scran* [@lun2016pooling] and *scater* [@mccarthy2017scater].
-
-```{r preprocess, warning=FALSE}
-variable_genes <-
-  pbmc_small_polished %>%
-  modelGeneVar() %>% # from scran
-  getTopHVGs(prop = 0.1) # from scran
-
-# Perform PCA with scater
-pbmc_small_pca <-
-  pbmc_small_polished %>%
-  runPCA(subset_row = variable_genes) # from scater
-
-pbmc_small_pca
-```
-
-If a tidyverse-compatible package is not included in the tidySingleCellExperiment collection, we can use `as_tibble` to permanently convert `tidySingleCellExperiment` into a tibble.
-
-```{r pc_plot, message=FALSE}
-# Create pairs plot with GGally
-pbmc_small_pca %>%
-  as_tibble() %>%
-  GGally::ggpairs(columns = 4:8, ggplot2::aes(colour = groups)) +
-  custom_theme
-```
-
-#### UMAP
-
-Beside PCA which is a linear dimensionality reduction, we can apply neighbour aware methods such as UMAP, to better define locally similar cells. We can calculate the first 3 UMAP dimensions using the scater framework.
-
-```{r umap}
-pbmc_small_UMAP <-
-  pbmc_small_pca %>%
-  runUMAP(ncomponents = 3) # from scater
-
-pbmc_small_UMAP
-```
-
-### Identify clusters 
-
-We can proceed with cluster identification with *scran*.
-
-```{r cluster}
-pbmc_small_cluster <- pbmc_small_UMAP
-
-# Assign clusters to the 'colLabels'
-# of the SingleCellExperiment object
-colLabels(pbmc_small_cluster) <- # from SingleCellExperiment
-  pbmc_small_pca %>%
-  buildSNNGraph(use.dimred = "PCA") %>% # from scran - shared nearest neighbour
-  cluster_walktrap() %$% # from igraph
-  membership %>%
-  as.factor()
-
-# Reorder columns
-pbmc_small_cluster %>% select(label, everything())
-```
-
-Now we can interrogate the object as if it was a regular tibble data frame.
-
-```{r cluster count}
-pbmc_small_cluster %>% count(groups, label)
-```
-
 
 ## Key Points
 - Some basic steps of a single-cell RNA sequencing analysis are dimensionality reduction, cluster identification and cell type classification

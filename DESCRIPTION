@@ -20,10 +20,9 @@ Depends:
 Imports:
     tidybulk,
     tidygate,
-    Seurat,
-    tidyseurat,
     tidyHeatmap,
     tidySingleCellExperiment,
+    tidySummarizedExperiment,
     stats,
     utils,
     tibble,
@@ -59,7 +58,9 @@ Imports:
     celldex,
     devtools,
     rlang,
-    magrittr
+    magrittr,
+    batchelor,
+    ggbeeswarm
 Suggests:
     knitr,
     rmarkdown,

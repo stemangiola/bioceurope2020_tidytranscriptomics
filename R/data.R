@@ -15,34 +15,9 @@
 #' @usage data(pasilla)
 "pasilla"
 
-#' pbmc_small_seurat
-#'
-#' A small Seurat dataset of single cell RNA sequencing data
-#'
-#' @format  A Seurat object.
-#' @usage data(pbmc_small_seurat)
-"pbmc_small_seurat"
-
-
-#' pbmc_small_sce
-#'
-#' A small SingleCellExperiment dataset of single cell RNA sequencing data
-#'
-#' @format  A SingleCellExperiment object.
-#' @usage data(pbmc_small_sce)
-"pbmc_small_sce"
-
-#' cell_type_df_sce
-#'
-#' Stefano's cell type df for tidySingleCellExperiment
-#'
-#' @format  A tibble containing two columns: label and first.labels
-#' @usage data(cell_type_df_sce)
-"cell_type_df_sce"
-
 #' pbmc
 #'
-#' A Seurat dadaset of single cell RNA sequencing data
+#' A SingleCellExperiment dadaset of single cell RNA sequencing data
 #'
 #' @format  A Seurat object.
 #' @usage data(pbmc)

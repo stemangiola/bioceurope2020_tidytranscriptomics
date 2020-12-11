@@ -4,10 +4,9 @@ WORKDIR /home/rstudio
 
 COPY --chown=rstudio:rstudio . /home/rstudio/
 
-# getting error with gert that seems to be fixed with this in the Github actions so adding it here
-RUN Rscript -e "remotes::install_github('r-hub/sysreqs')" &&\
-    sysreqs=$(Rscript -e "cat(sysreqs::sysreq_commands('DESCRIPTION'))") &&\
-    sudo -s eval "$sysreqs"
+# getting error with gert, says needs libgit2-dev
+RUN apt-get update && \
+  apt-get install -y libgit2-dev
 
 RUN Rscript -e "options(repos = c(CRAN = 'https://cran.r-project.org')); BiocManager::install(ask=FALSE)"
 

@@ -27,8 +27,18 @@ jobs:
         uses: actions/cache@v1
         with:
           path: /usr/local/lib/R/site-library
-          key: ${{ runner.os }}-r-5-${{ hashFiles('.github/depends.Rds') }}
-          restore-keys: ${{ runner.os }}-r-5-
+          key: ${{ runner.os }}-r-1-${{ hashFiles('.github/depends.Rds') }}
+          restore-keys: ${{ runner.os }}-r-1-
+          
+       # This lets us augment with additional dependencies	
+      - name: Install system dependencies	
+        if: runner.os == 'Linux'	
+        env:	
+          RHUB_PLATFORM: linux-x86_64-ubuntu-gcc	
+        run: |	
+          Rscript -e "remotes::install_github('r-hub/sysreqs')"	
+          sysreqs=$(Rscript -e "cat(sysreqs::sysreq_commands('DESCRIPTION'))")	
+          sudo -s eval "$sysreqs"
           
       - name: Install dependencies
         run: |

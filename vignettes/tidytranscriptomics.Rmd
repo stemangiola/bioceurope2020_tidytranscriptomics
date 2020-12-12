@@ -424,94 +424,6 @@ de_all %>%
 Which method detects the most differentially abundant transcripts, p value adjusted for multiple testing <  0.05 (FDR, adj.P.Val, padj)?
 ```
 
-_Note: Some of the methods produce columns with different names for similar outputs. If you wish to make these consistent you can do that with tidyverse `rename`. For example, to rename the p value adjusted columns you could run below._
-
-```{r eval=FALSE}
-de_all %>% rename(deseq2_FDR = deseq2_padj, voom_FDR = voom_adj.P.Val)
-```
-
-We can select some of the transcripts that look different between methods in the plot using the [*tidygate*](https://github.com/stemangiola/tidygate) package. We can then investigate these transcripts, for example, by visualising their counts.
-
-With tidygate, we can interactively draw gates to select points we want using `gate`. We specify which columns we want to plot in the scatterplot, and how many gates we want to draw. We can also specify the opacity if we want to make it easier to see overlapping points.
-
-```{r, eval=FALSE}
-de_gate <-
-  de_all %>%
-
-  tidygate::gate(
-    feature,
-    edgerQLT_PValue,
-    deseq2_pvalue,
-    opacity = 0.3,
-    how_many_gates = 2
-  )
-```
-
-We then click to draw gates around the points we want, for example as shown in the screenshot below.
-
-```{r, echo=FALSE}
-knitr::include_graphics("../inst/vignettes/comparison_different_DE_methods_gates.png")
-```
-
-That will add a column called gate, specifying which gate the points (transcripts) are in.
-
-```{r echo=FALSE}
-# using pre-selected gates just to render the html version of this document
-de_gate <-
-  de_all %>%
-
-  tidygate::gate(
-    feature,
-    edgerQLT_PValue,
-    deseq2_pvalue,
-    gate_list = bioceurope2020tidytranscriptomics::de_gate_gates
-  )
-
-de_gate
-```
-
-We can check how many transcripts we've got in each gate.
-
-```{r}
-de_gate %>%
-  pivot_transcript() %>%
-  count(gate)
-```
-
-We can now select the transcripts from our two gates i.e. more significant in edgeR (gate 1) and more significant in DESeq2 (gate 2) and visualise the counts for each sample in the treated and untreated groups.
-
-```{r}
-de_gate %>%
-
-  # Filter for transcripts within the gates
-  filter(gate > 0) %>%
-
-  # Rename for clarity
-  mutate(gate = case_when(
-    gate == 1 ~ "more in edgeR",
-    gate == 2 ~ "more in DESeq2",
-    TRUE ~ gate
-  )) %>%
-
-  # Order the plots for the transcripts
-  mutate(feature = forcats::fct_reorder(feature, edgerQLT_PValue, min)) %>%
-
-  # Plot
-  ggplot(aes(dex, counts_scaled, color = gate)) +
-  geom_point() +
-  facet_wrap(~feature, scale = "free_y", ncol = 4) +
-  custom_theme
-```
-
-We could also check the log fold changes for these genes and see, for example, that DESeq2 produces a more conservative logFC statistic for the gene `ENSG00000104725`.
-
-```{r}
-de_gate %>%
-  pivot_transcript() %>%
-  filter(feature == "ENSG00000104725") %>%
-  select(edgerQLT_logFC, deseq2_log2FoldChange)
-```
-
 ### Single method
 
 If we just wanted to run one differential testing method we could do that. The default method is edgeR quasi-likelihood.
@@ -614,17 +526,6 @@ strip_chart
 ```
 
 
-## Interactive Plots
-
-A really nice feature of using tidyverse and ggplot2 is that we can make interactive plots quite easily using the plotly package. This can be very useful for exploring what genes or samples are in the plots. We can make interactive plots directly from our ggplot2 object (strip_chart). Having `label` in the `aes` is useful to visualise the identifier of the data point (here the sample id) or other variables when we hover over the plot.
-
-We can also specify which parameters from the `aes` we want to show up when we hover over the plot with `tooltip`.
-
-```{r, out.width = "70%", warning=FALSE}
-strip_chart %>% ggplotly(tooltip = c("label", "y"))
-```
-
-
 ## Automatic bibliography
 
 Tidybulk provides a handy function called `get_bibliography` that keeps track of the references for the methods used in your tidybulk workflow. The references are in BibTeX format and can be imported into your reference manager.
@@ -633,32 +534,6 @@ Tidybulk provides a handy function called `get_bibliography` that keeps track of
 get_bibliography(counts_de)
 ```
 
-
-## Tidybulk ADD versus GET modes
-
-In the next parts we will see `action="get"` being used with some tidybulk functions, so we will explain here what it is doing.
-
-Every tidybulk function takes a tidybulk tibble as input, and  
- * `action="add"` outputs the new information joined to the original input data frame (default)  
- * `action="get"` outputs the new information with only the sample or transcript information, depending on what the analysis is
- 
-For example, with `action="add"` (default), we can add the PCA dimensions to the original data set. So we still have a row for every transcript in every sample.
-
-```{r}
-counts_scaled %>%
-  reduce_dimensions(
-  method = "PCA",
-  action = "add")
-```
-
-Or with `action= "get"` we can add the PCA dimensions to the original data set selecting just the sample-wise columns. Note that we now have just one row for every sample.
-
-```{r}
-counts_scaled %>%
-  reduce_dimensions(
-  method = "PCA",
-  action = "get")
-```
 
 ## Cell type composition analysis
 
@@ -737,36 +612,6 @@ BRCA_cell_type_long %>%
 ```{poll_8 class.source="poll"}
 Poll: What is the most abundant cell type overall in BRCA samples?
 ```
-
-We can also perform differential tissue composition analyses, similar to how we performed differential transcript abundance analyses. We use tidybulk's `test_differential_cellularity` and can perform our analyses using a known factor of interest, such as tumour subtype, or using survival data. Here we use survival data available from TCGA [@liu2018integrated].
-
-```{r}
-library(survival)
-
-BRCA_tidy_survival <-
-  BRCA_tidy %>%
-  test_differential_cellularity(Surv(time, event_occurred) ~ ., cores = 1) %>%
-  arrange(p.value)
-
-BRCA_tidy_survival %>%
-  dplyr::select(.cell_type, p.value, everything())
-```
-
-We can visualise the proportions for the cell types most associated with survival.
-
-```{r}
-BRCA_tidy_survival %>%
-  dplyr::slice(1:2) %>%
-  unnest(cell_type_proportions) %>%
-  ggplot(aes(time, .proportion, color = factor(event_occurred))) +
-  geom_point() +
-  facet_wrap(~.cell_type) +
-  scale_x_log10() +
-  scale_y_continuous(trans = "logit") +
-  custom_theme
-```
-
-
 ## Key Points
 
 - RNA sequencing data can be represented and analysed in a 'tidy' way using tidybulk and the tidyverse
@@ -1097,7 +942,8 @@ pbmc_tidy %>%
     y = ~`UMAP2`,
     z = ~`UMAP3`,
     colors = friendly_cols[1:10],
-    color = ~batch
+    color = ~batch,
+    size=0.5 
   )
 ```
 
@@ -1141,7 +987,8 @@ pbmc_tidy %>%
     y = ~`UMAP2`,
     z = ~`UMAP3`,
     colors = friendly_cols[1:10],
-    color = ~label
+    color = ~label,
+    size=0.5 
   )
 ```
 
@@ -1199,6 +1046,8 @@ cell_type <-
   as.data.frame() %>%
   as_tibble(rownames = "label") %>%
   select(label, first.labels)
+
+cell_type
 ```
 
 We join the cluster label dataframe to our tidyseurat tibble.

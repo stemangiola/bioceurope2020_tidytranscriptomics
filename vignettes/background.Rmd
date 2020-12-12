@@ -33,12 +33,9 @@ knitr::include_graphics("../inst/vignettes/tidybulk_logo.png")
 
 # Schedule
 
-- Part 1 Tidy Bulk RNA-seq analysis
-- Part 2 Tidy Single-cell RNA-seq analysis
-
-A more detailed schedule can be found [here](https://stemangiola.github.io/bioceurope2020_tidytranscriptomics/index.html#time-outline).  
+Schedule can be found [here](https://stemangiola.github.io/bioceurope2020_tidytranscriptomics/index.html#time-outline).  
 <br>
-**Format**: a few introductory slides, then demos, exercises plus Q&A.  
+**Format**: Hands on demos plus Q&A 
 **Interact**: Zoom chat and polls
 <br>
 <br>
@@ -128,13 +125,20 @@ knitr::include_graphics("../inst/vignettes/single_cell_RNAseq_pipeline.png")
 
 ## Cloud
 
-Easiest way to run this material. Only available during workshop. Thanks to ARDC for providing RStudio in the Nectar Research Cloud and Andy Botting from ARDC for helping to set up.
+Easiest way to run this material. Only available during workshop.
 
- * Login to https://rstudio.tidytranscriptomics-workshop.cloud.edu.au/rstudio/auth-sign-in with one of the supplied usernames and passwords
+ * Go to http://app.orchestra.cancerdatasci.org/1  
+ * Launch the workshop **Tidy transcriptomics for bulk and single-cell analyses** shown below. It may take a minute to launch.  
+ * Login in with the Username and Password shown.
+ 
+```{r, echo=FALSE, out.width = "600px"}
+knitr::include_graphics("../inst/vignettes/launch_workshop.png")
+```
+
  * Open `tidytranscriptomics.Rmd` in `vignettes` folder
  
 
 ## Local
 
-If you want to install on your own computer, see instructions [here](https://stemangiola.github.io/bioceurope2020_tidytranscriptomics/index.html#workshop-package-installation). We recommend using the Cloud during the bioceurope workshop and this method if you want to run the material after the workshop.
+If you want to install on your own computer, see instructions [here](https://stemangiola.github.io/bioceurope2020_tidytranscriptomics/index.html#workshop-package-installation). We recommend using the Cloud during the EuroBioc2020 workshop and this method if you want to run the material after the workshop.
 

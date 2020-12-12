@@ -4,9 +4,9 @@ WORKDIR /home/rstudio
 
 COPY --chown=rstudio:rstudio . /home/rstudio/
 
-RUN Rscript -e "install.packages('remotes')"
-
-RUN Rscript -e "BiocManager::install(c('stemangiola/tidybulk@v1.2.0', 'stemangiola/tidygate@v0.2.8', 'stemangiola/tidyseurat@v0.1.17', 'stemangiola/tidyHeatmap@v1.1.5'))"
+# getting error with gert, says needs libgit2-dev
+RUN apt-get update && \
+  apt-get install -y libgit2-dev
 
 RUN Rscript -e "options(repos = c(CRAN = 'https://cran.r-project.org')); BiocManager::install(ask=FALSE)"
 

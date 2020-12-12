@@ -98,7 +98,7 @@
 <h2 class="hasAnchor">
 <a href="#syllabus" class="anchor"></a>Syllabus</h2>
 <p>Material <a href="https://stemangiola.github.io/bioceurope2020_tidytranscriptomics/articles/tidytranscriptomics.html">web page</a>.</p>
-<p>This material was created for the <a href="https://www.bioceurope.org/workshops">bioceurope 2020 conference workshop</a> but it can also be used for self-learning.</p>
+<p>This material was created for the <a href="https://eurobioc2020.bioconductor.org/workshops">bioceurope 2020 conference workshop</a> but it can also be used for self-learning.</p>
 <p>More details on the workshop are below.</p>
 </div>
 <div id="workshop-package-installation" class="section level2">
@@ -119,7 +119,6 @@
 <p>Alternatively, you could install the workshop using the commands below in R <code>4.0</code>.</p>
 <pre><code><a href="https://remotes.r-lib.org/reference/install_github.html"># Install same versions used in the workshop
 #install.packages('remotes')
-remotes::install_github(c("stemangiola/tidybulk@v1.2.0", "stemangiola/tidygate@v0.2.8", "stemangiola/tidyseurat@v0.1.17", "stemangiola/tidyHeatmap@v1.1.5"))
 
 # Install workshop package
 remotes::install_github("stemangiola/bioceurope2020_tidytranscriptomics", build_vignettes = TRUE)
@@ -148,7 +147,7 @@ browseVignettes("bioceurope2020tidytranscriptomics")</a></code></pre>
 <div id="workshop-participation" class="section level3">
 <h3 class="hasAnchor">
 <a href="#workshop-participation" class="anchor"></a>Workshop Participation</h3>
-<p>The workshop format is a 3.5 hour session consisting of hands-on demos, exercises and Q&amp;A.</p>
+<p>The workshop format is a 1.5 hour session consisting of hands-on demos, exercises and Q&amp;A.</p>
 </div>
 <div id="r--bioconductor-packages-used" class="section level3">
 <h3 class="hasAnchor">
@@ -156,10 +155,8 @@ browseVignettes("bioceurope2020tidytranscriptomics")</a></code></pre>
 <ul>
 <li>tidyverse</li>
 <li>tidybulk</li>
-<li>tidyseurat</li>
 <li>tidySingleCellExperiment</li>
 <li>tidyHeatmap</li>
-<li>tidygate</li>
 <li>limma</li>
 <li>edgeR</li>
 <li>DESeq2</li>
@@ -178,57 +175,25 @@ browseVignettes("bioceurope2020tidytranscriptomics")</a></code></pre>
 <p>Guide</p>
 <table class="table">
 <thead><tr class="header">
-<th>Activity</th>
+<th>Activity - Hands on demos with Q&amp;A</th>
 <th>Time</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><strong>Part 1 Bulk RNA-seq Core</strong></td>
-<td></td>
+<td>Part 1 Bulk RNA-seq with tidybulk</td>
+<td>40</td>
 </tr>
 <tr class="even">
-<td><em>Hands-on Demos</em></td>
-<td>90m</td>
+<td>Part 2 Bulk RNA-seq with tidySummarizedExperiment and Bioconductor</td>
+<td>10</td>
 </tr>
 <tr class="odd">
-<td>    Data dimensionality reduction and clustering</td>
-<td></td>
-</tr>
-<tr class="even">
-<td>    Differential gene expression</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td>    Cell type composition analysis</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><em>Break</em></td>
-<td>30m</td>
-</tr>
-<tr class="odd">
-<td><strong>Part 2 Single-cell RNA-seq</strong></td>
-<td></td>
-</tr>
-<tr class="even">
-<td><em>Hands-on Demos</em></td>
-<td>90m</td>
-</tr>
-<tr class="odd">
-<td>    Single-cell analysis with tidyseurat</td>
-<td></td>
-</tr>
-<tr class="even">
-<td>    Pseudobulk analysis</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td>    Single-cell analysis with tidySingleCellExperiment</td>
-<td></td>
+<td>Part 3 Single-cell RNA-seq with tidySingleCellExperiment</td>
+<td>40</td>
 </tr>
 <tr class="even">
 <td>Total</td>
-<td>210m</td>
+<td>90m</td>
 </tr>
 </tbody>
 </table>

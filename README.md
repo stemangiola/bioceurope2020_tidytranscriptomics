@@ -18,7 +18,7 @@
 
 Material [web page](https://stemangiola.github.io/bioceurope2020_tidytranscriptomics/articles/tidytranscriptomics.html).
 
-This material was created for the [bioceurope 2020 conference workshop](https://www.bioceurope.org/workshops) but it can also be used for self-learning.
+This material was created for the [bioceurope 2020 conference workshop](https://eurobioc2020.bioconductor.org/workshops) but it can also be used for self-learning.
 
 More details on the workshop are below.
 
@@ -46,7 +46,6 @@ Alternatively, you could install the workshop using the commands below in R `4.0
 ```
 # Install same versions used in the workshop
 #install.packages('remotes')
-remotes::install_github(c("stemangiola/tidybulk@v1.2.0", "stemangiola/tidygate@v0.2.8", "stemangiola/tidyseurat@v0.1.17", "stemangiola/tidyHeatmap@v1.1.5"))
 
 # Install workshop package
 remotes::install_github("stemangiola/bioceurope2020_tidytranscriptomics", build_vignettes = TRUE)
@@ -75,16 +74,14 @@ Recommended Background Reading
 
 ### Workshop Participation
 
-The workshop format is a 3.5 hour session consisting of hands-on demos, exercises and Q&A.
+The workshop format is a 1.5 hour session consisting of hands-on demos, exercises and Q&A.
 
 ### _R_ / _Bioconductor_ packages used
 
 * tidyverse
 * tidybulk
-* tidyseurat
 * tidySingleCellExperiment
 * tidyHeatmap
-* tidygate
 * limma
 * edgeR
 * DESeq2
@@ -101,20 +98,12 @@ The workshop format is a 3.5 hour session consisting of hands-on demos, exercise
 
 Guide
 
-| Activity                                                | Time |
-|---------------------------------------------------------|------|
-| **Part 1 Bulk RNA-seq Core**                            |      |
-|  *Hands-on Demos*                                       |  90m |
-|      Data dimensionality reduction and clustering       |      |
-|      Differential gene expression                       |      |
-|      Cell type composition analysis                     |      |
-| _Break_                                                 |  30m |
-| **Part 2 Single-cell RNA-seq**                          |      |
-|  *Hands-on Demos*                                       |  90m |
-|      Single-cell analysis with tidyseurat               |      |
-|      Pseudobulk analysis                                |      |
-|      Single-cell analysis with tidySingleCellExperiment |      |
-| Total                                                   | 210m |
+| Activity - Hands on demos with Q&A                                 | Time |
+|--------------------------------------------------------------------|------|
+| Part 1 Bulk RNA-seq with tidybulk                                  |  40  |
+| Part 2 Bulk RNA-seq with tidySummarizedExperiment and Bioconductor |  10  |
+| Part 3 Single-cell RNA-seq with tidySingleCellExperiment           |  40  |
+| Total                                                              |  90m |
 
 ### Workshop goals and objectives
 

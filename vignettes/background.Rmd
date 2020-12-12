@@ -33,12 +33,9 @@ knitr::include_graphics("../inst/vignettes/tidybulk_logo.png")
 
 # Schedule
 
-- Part 1 Tidy Bulk RNA-seq analysis
-- Part 2 Tidy Single-cell RNA-seq analysis
-
-A more detailed schedule can be found [here](https://stemangiola.github.io/bioceurope2020_tidytranscriptomics/index.html#time-outline).  
+Schedule can be found [here](https://stemangiola.github.io/bioceurope2020_tidytranscriptomics/index.html#time-outline).  
 <br>
-**Format**: a few introductory slides, then demos, exercises plus Q&A.  
+**Format**: Hands on demos plus Q&A 
 **Interact**: Zoom chat and polls
 <br>
 <br>

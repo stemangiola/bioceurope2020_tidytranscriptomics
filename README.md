@@ -75,7 +75,7 @@ Recommended Background Reading
 
 ### Workshop Participation
 
-The workshop format is a 3.5 hour session consisting of hands-on demos, exercises and Q&A.
+The workshop format is a 1.5 hour session consisting of hands-on demos, exercises and Q&A.
 
 ### _R_ / _Bioconductor_ packages used
 
@@ -104,17 +104,16 @@ Guide
 | Activity                                                | Time |
 |---------------------------------------------------------|------|
 | **Part 1 Bulk RNA-seq Core**                            |      |
-|  *Hands-on Demos*                                       |  90m |
+|  *Hands-on Demos*                                       |  45m |
 |      Data dimensionality reduction and clustering       |      |
 |      Differential gene expression                       |      |
 |      Cell type composition analysis                     |      |
-| _Break_                                                 |  30m |
 | **Part 2 Single-cell RNA-seq**                          |      |
-|  *Hands-on Demos*                                       |  90m |
+|  *Hands-on Demos*                                       |  45m |
 |      Single-cell analysis with tidyseurat               |      |
 |      Pseudobulk analysis                                |      |
 |      Single-cell analysis with tidySingleCellExperiment |      |
-| Total                                                   | 210m |
+| Total                                                   |  90m |
 
 ### Workshop goals and objectives
 

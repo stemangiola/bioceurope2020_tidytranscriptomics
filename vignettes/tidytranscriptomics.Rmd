@@ -629,7 +629,7 @@ Some things we don't have time to cover in Part 1 of this workshop can be found 
 
 # Part 2 Bulk RNA-seq with tidySummarizedExperiment and Bioconductor
 
-# Tidify `SummarizedExperiment` into `tidySummarizedExperiment`
+## Tidify `SummarizedExperiment` into `tidySummarizedExperiment`
 
 This is a SummarizedExperiment object but it is evaluated as tibble. So it is fully compatible both with SummarizedExperiment and tidyverse APIs. 
 
@@ -650,8 +650,7 @@ pasilla_tidy
 assays(pasilla_tidy)
 ```
 
-
-# Tidyverse commands
+## Tidyverse commands
 
 We can use tidyverse commands to explore the tidy SummarizedExperiment object.
 

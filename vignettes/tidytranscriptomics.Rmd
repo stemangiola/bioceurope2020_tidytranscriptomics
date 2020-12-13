@@ -501,31 +501,6 @@ counts_de %>%
   scale_size_discrete(range = c(0, 2))
 ```
 
-### Stripcharts
-
-Before following up on the differentially expressed genes with further lab work, it is also recommended to have a look at the expression levels of the individual samples for the genes of interest. We can use stripcharts to do this. These will help show if expression is consistent amongst replicates in the groups.
-
-With stripcharts we can see if replicates tend to group together and how the expression compares to the other groups. We'll also add a box plot to show the distribution. Tidyverse faceting makes it easy to create a plot for each gene.
-
-```{r out.width = "70%"}
-strip_chart <-
-  counts_scaled %>%
-
-  # extract counts for top differentially expressed genes
-  filter(symbol %in% topgenes_symbols) %>%
-
-  # make faceted stripchart
-  ggplot(aes(x = dex, y = counts_scaled + 1, fill = dex, label = sample)) +
-  geom_boxplot() +
-  geom_jitter() +
-  facet_wrap(~symbol) +
-  scale_y_log10() +
-  custom_theme
-
-strip_chart
-```
-
-
 ## Automatic bibliography
 
 Tidybulk provides a handy function called `get_bibliography` that keeps track of the references for the methods used in your tidybulk workflow. The references are in BibTeX format and can be imported into your reference manager.

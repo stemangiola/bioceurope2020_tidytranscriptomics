@@ -587,6 +587,7 @@ BRCA_cell_type_long %>%
 ```{poll_8 class.source="poll"}
 Poll: What is the most abundant cell type overall in BRCA samples?
 ```
+
 ## Key Points
 
 - RNA sequencing data can be represented and analysed in a 'tidy' way using tidybulk and the tidyverse
@@ -717,10 +718,12 @@ pasilla_tidy %>%
 
 In Part 1 we showed how we can study the cell-type composition of a biological sample using bulk RNA sequencing.  Single cell sequencing enables a more direct estimation of cell-type composition and gives greater resolution. For bulk RNA sequencing we need to infer the cell types using the abundance of transcripts in the whole sample, with single-cell RNA sequencing we can directly measure the transcripts in each cell and then classify the cells into cell types. 
 
-## Introduction to tidyseurat
+## Introduction to tidySingleCellExperiment
 
-Seurat is a very popular analysis toolkit for single cell RNA sequencing data [@butler2018integrating; @stuart2019comprehensive]. tidyseurat provides a bridge between the Seurat single-cell package and the tidyverse. It creates an invisible layer that enables viewing the
-Seurat object as a tidyverse tibble, and provides Seurat-compatible *dplyr*, *tidyr*, *ggplot* and *plotly* functions.
+SingleCellExperiment is a very popular container of single cell RNA sequencing data.
+
+tidySingleCellExperiment provides a bridge between the SingleCellExperiment single-cell package and the tidyverse. It creates an invisible layer that enables viewing the
+SingleCellExperiment object as a tidyverse tibble, and provides SingleCellExperiment-compatible *dplyr*, *tidyr*, *ggplot* and *plotly* functions.
 
 
 ```{r message=FALSE, warning=FALSE}
@@ -754,9 +757,9 @@ pbmc <- bioceurope2020tidytranscriptomics::pbmc
 dim(pbmc)
 ```
 
-### Create `tidyseurat`
+### Create `tidySingleCellExperiment`
 
-This is a seurat object but it is evaluated as tibble. So it is fully compatible both with Seurat and tidyverse APIs.
+This is a SingleCellExperiment object but it is evaluated as tibble. So it is fully compatible both with SingleCellExperiment and tidyverse APIs.
 
 ```{r}
 pbmc_tidy <- pbmc %>% tidy()
@@ -768,7 +771,7 @@ pbmc_tidy <- pbmc %>% tidy()
 pbmc_tidy
 ```
 
-**But it is a Seurat object after all**
+**But it is a SingleCellExperiment object after all**
 
 So it can be interacted with using [SingleCellExperiment commands](https://bioconductor.org/packages/release/bioc/vignettes/SingleCellExperiment/inst/doc/intro.html) such as `assayNames`.
 
@@ -795,7 +798,7 @@ pbmc_tidy
 
 ## Quality control
 
-A key quality control step performed in single cell analysis is assessment of the proportion of mitochondrial transcripts. A high mitochondrial count can indicate the cell is dead or dying and is thus poor quality. A powerful combination of tools we can use with tidyseurat is tidyverse's [nest](https://rstudio-education.github.io/tidyverse-cookbook/transform-tables.html#nest-a-data-frame) and `map`. This enables us to easily perform independent analyses on subsets of the data. For example, we can nest by dataset and use map to iterate the analysis of mitochondrial content across each dataset.
+A key quality control step performed in single cell analysis is assessment of the proportion of mitochondrial transcripts. A high mitochondrial count can indicate the cell is dead or dying and is thus poor quality. A powerful combination of tools we can use with tidySingleCellExperiment is tidyverse's [nest](https://rstudio-education.github.io/tidyverse-cookbook/transform-tables.html#nest-a-data-frame) and `map`. This enables us to easily perform independent analyses on subsets of the data. For example, we can nest by dataset and use map to iterate the analysis of mitochondrial content across each dataset.
 
 ```{r}
 # Get chromosomal location for gene symbols
@@ -861,10 +864,6 @@ pbmc_tidy %>%
 
 In the faceted plot, detected is number of genes in each of the 10 datasets, sum is total counts.
 
-```{poll_5 class.source="poll"}
-What is the ID of the cell with the highest mitochondrial relative content?
-```
-
 We filter out cells with high mitochondrial content.
 
 ```{r}
@@ -875,7 +874,7 @@ pbmc_tidy <- pbmc_tidy %>% filter(!high_mitochondrion)
 
 We need to integrate the different datasets to adjust for technical variability between them. For integration we have chosen 10x_8K (dataset number 3) as reference because it is relatively high quality.
 
-```{r preprocess seurat, message=FALSE, warning=FALSE}
+```{r preprocess SingleCellExperiment, message=FALSE, warning=FALSE}
 # Scaling within each dataset
 pbmc_tidy <-
   pbmc_tidy %>%
@@ -887,48 +886,15 @@ pbmc_tidy <-
   # Normalisation   
   mutate(data = multiBatchNorm(data)) %>%
 
+  # Integration
   pull(data) %>%
-  
   fastMNN() %>%
-
   tidy()
-
-
-```
-
-## Reduce dimensions
-
-Besides PCA which is a linear dimensionality reduction, we can apply neighbour aware methods such as UMAP, to better define locally similar cells. We can calculate the first 3 UMAP dimensions using the Seurat framework.
-
-```{r umap seurat, warning=FALSE}
-# Perform PCA with scater
-pbmc_tidy <-
-  pbmc_tidy %>%
-  runUMAP(ncomponents = 3, dimred="corrected") # from scater
-```
-
-And we can plot the output as a 3D plot using plotly. With this we can check if the datasets are clustering independently, indicating a batch effect, or if they are mixed together and cells are clustering by cell type.
-
-```{r umap plot seurat, eval=FALSE}
-pbmc_tidy %>%
-  plot_ly(
-    x = ~`UMAP1`,
-    y = ~`UMAP2`,
-    z = ~`UMAP3`,
-    colors = friendly_cols[1:10],
-    color = ~batch,
-    size=0.5 
-  )
-```
-
-
-```{r, echo=FALSE}
-knitr::include_graphics("../inst/vignettes/plotly_1.png")
 ```
 
 ## Identify clusters 
 
-We proceed with cluster identification with Seurat. FindNeighbors constructs a Shared Nearest Neighbor (SNN) Graph for a given dataset. The k-nearest neighbours of each cell are first determined. FindClusters identifies clusters of cells by a shared nearest neighbour (SNN). 
+We proceed with cluster identification with scran FindNeighbors constructs a Shared Nearest Neighbor (SNN) Graph for a given dataset. The k-nearest neighbours of each cell are first determined. FindClusters identifies clusters of cells by a shared nearest neighbour (SNN). 
 
 ```{r cluster}
 # Assign clusters to the 'colLabels'
@@ -944,12 +910,22 @@ colLabels(pbmc_tidy) <- # from SingleCellExperiment
 pbmc_tidy %>% select(label, everything())
 ```
 
-
 Now we can interrogate the object as if it was a regular tibble data frame.
 
-```{r cluster count seurat}
+```{r cluster count SingleCellExperiment}
 pbmc_tidy %>%
   count(label)
+```
+
+## Reduce dimensions
+
+Besides PCA which is a linear dimensionality reduction, we can apply neighbour aware methods such as UMAP, to better define locally similar cells. We can calculate the first 3 UMAP dimensions using the scater framework.
+
+```{r umap SingleCellExperiment, warning=FALSE}
+# Calculate UMAP with scater
+pbmc_tidy <-
+  pbmc_tidy %>%
+  runUMAP(ncomponents = 3, dimred="corrected") # from scater
 ```
 
 And we can plot the clusters as a 3D plot using plotly. This time we are colouring by estimated cluster labels to visually check the cluster labels.
@@ -974,13 +950,13 @@ knitr::include_graphics("../inst/vignettes/plotly_2.png")
 
 ### Manual cell type classification
 
-We can identify cluster markers (genes) using Seurat. As example, we are selecting the top 10 for each cluster. The function DoHeatmap builds an heatmap of those gene markers across cells.
+We can identify cluster markers (genes) using scran As example, we are selecting the top 10 for each cluster. The function DoHeatmap builds an heatmap of those gene markers across cells.
 
 ```{r}
 # Identify top 10 markers per cluster
 marker_genes <-
     pbmc_tidy %>%
-    findMarkers(groups=pbmc_tidy$label, assay.type = "reconstructed") %>%
+    findMarkers(groups=pbmc_tidy$label, assay.type = "reconstructed") %>%  # scran
     as.list() %>%
     map(~ head(.x, 10) %>%  rownames()) %>%
     unlist()
@@ -1016,7 +992,7 @@ cell_type <-
     clusters = pbmc_tidy %>% pull(label)
   ) %>%
     
-    # Formatting results
+  # Formatting results
   as.data.frame() %>%
   as_tibble(rownames = "label") %>%
   select(label, first.labels)
@@ -1024,7 +1000,7 @@ cell_type <-
 cell_type
 ```
 
-We join the cluster label dataframe to our tidyseurat tibble.
+We join the cluster label dataframe to our tidySingleCellExperiment tibble.
 
 ```{r}
 # Join cell type info
@@ -1041,12 +1017,6 @@ We can easily summarise the results. For example, we can see how cell type class
 ```{r}
 pbmc_tidy %>% count(label, first.labels)
 ```
-
-```{poll_6 class.source="poll"}
-How many cells are classified differently by SingleR when analyses are done by cluster (as above) or by cell (omitting the argument `clusters`). Tip: you can answer this question without creating any variable, using left_join.
-```
-
-
 ## Pseudobulk analyses
 
 It is sometime useful to aggregate cell-wise transcript abundance into pseudobulk samples. It is possible to explore data and perform hypothesis testing with tools and data-source that we are more familiar with. For example, we can use edgeR in tidybulk to perform differential expression testing. For more details on pseudobulk analysis see [here](https://hbctraining.github.io/scRNA-seq/lessons/pseudobulk_DESeq2_scrnaseq.html).
@@ -1079,8 +1049,8 @@ pbmc_bulk %>%
 
 ## Key Points
 - Some basic steps of a single-cell RNA sequencing analysis are dimensionality reduction, cluster identification and cell type classification
-- `tidyseurat` is an invisible layer that operates on a `Seurat` object and enables us to visualise and manipulate data as if it were a tidy data frame.
-- `tidyseurat` object is a `Seurat object` so it can be used with any `Seurat` compatible method
+- `tidySingleCellExperiment` is an invisible layer that operates on a `SingleCellExperiment` object and enables us to visualise and manipulate data as if it were a tidy data frame.
+- `tidySingleCellExperiment` object is a `SingleCellExperiment object` so it can be used with any `SingleCellExperiment` compatible method
 - `tidySingleCellExperiment` is an invisible layer that operates on a `SingleCellExperiment` object and enables us to visualise and manipulate data as if it were a tidy data frame.
 - `tidySingleCellExperiment` object is a `SingleCellExperiment object` so it can be used with any `SingleCellExperiment` compatible method
 

@@ -756,6 +756,16 @@ So it can be interacted with using [SingleCellExperiment commands](https://bioco
 assayNames(pbmc_tidy) # from SummarizedExperiment
 ```
 
+## Extract gene information
+
+We can join transcript-wise information for independent analyses
+
+```{r}
+pbmc_tidy %>%
+  join_transcripts("CD3G")
+
+```
+
 ## Polish the data
 
 We can also interact with our object as we do with any tidyverse tibble. In this case we want to polish an annotation column. We will extract the sample and dataset names from the file name column into separate columns.

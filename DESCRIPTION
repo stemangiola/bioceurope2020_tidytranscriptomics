@@ -1,6 +1,6 @@
 Package: bioceurope2020tidytranscriptomics
 Title: Introduction to Tidy Transcriptomics
-Version: 0.7.1
+Version: 0.7.2
 Authors@R: c(
     person("Maria", "Doyle", email="maria.doyle@petermac.org",
     role = c("aut"),

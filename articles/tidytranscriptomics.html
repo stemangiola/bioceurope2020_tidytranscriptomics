@@ -1385,36 +1385,38 @@
 <span class="co">#&gt; # A tibble abstraction: 2,899 x 8</span>
 <span class="co">#&gt;    cell       label batch corrected1 corrected2 corrected3 corrected4 corrected5</span>
 <span class="co">#&gt;    &lt;chr&gt;      &lt;fct&gt; &lt;int&gt;      &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;</span>
-<span class="co">#&gt;  1 CCAGTCACA… 5         1   -0.0645     -0.334      0.0725    -0.0560   -0.0739 </span>
-<span class="co">#&gt;  2 ATGAGCACA… 2         1   -0.178       0.0167     0.122     -0.122     0.0233 </span>
-<span class="co">#&gt;  3 TATGAATGG… 7         1   -0.0602     -0.0356    -0.126     -0.293     0.0127 </span>
-<span class="co">#&gt;  4 CATATAGAC… 11        1   -0.0761     -0.282      0.121     -0.0547   -0.00284</span>
-<span class="co">#&gt;  5 GAGGCAGAC… 1         1   -0.0757     -0.0424    -0.0976    -0.259     0.0248 </span>
-<span class="co">#&gt;  6 AGCTGCCTT… 3         1   -0.117      -0.0242     0.0729    -0.159     0.0170 </span>
-<span class="co">#&gt;  7 TGATTAGAT… 4         1   -0.146      -0.0752     0.143     -0.0488    0.0915 </span>
-<span class="co">#&gt;  8 ACGAAGCTC… 4         1   -0.119      -0.108      0.127     -0.0505    0.0624 </span>
-<span class="co">#&gt;  9 CGGCATCTT… 5         1   -0.00951    -0.407      0.0466    -0.0804   -0.0523 </span>
-<span class="co">#&gt; 10 ATAGCGTGC… 5         1   -0.0562     -0.367      0.105     -0.0590   -0.0610 </span>
+<span class="co">#&gt;  1 CCAGTCACA… 4         1   -0.0644      0.334      0.0725     0.0560    0.0739 </span>
+<span class="co">#&gt;  2 ATGAGCACA… 6         1   -0.178      -0.0167     0.122      0.122    -0.0233 </span>
+<span class="co">#&gt;  3 TATGAATGG… 8         1   -0.0602      0.0356    -0.127      0.293    -0.0128 </span>
+<span class="co">#&gt;  4 CATATAGAC… 13        1   -0.0761      0.282      0.121      0.0546    0.00285</span>
+<span class="co">#&gt;  5 GAGGCAGAC… 1         1   -0.0757      0.0424    -0.0977     0.259    -0.0248 </span>
+<span class="co">#&gt;  6 AGCTGCCTT… 5         1   -0.117       0.0242     0.0729     0.159    -0.0170 </span>
+<span class="co">#&gt;  7 TGATTAGAT… 2         1   -0.146       0.0752     0.143      0.0488   -0.0916 </span>
+<span class="co">#&gt;  8 ACGAAGCTC… 2         1   -0.119       0.108      0.127      0.0505   -0.0624 </span>
+<span class="co">#&gt;  9 CGGCATCTT… 4         1   -0.00954     0.407      0.0466     0.0803    0.0522 </span>
+<span class="co">#&gt; 10 ATAGCGTGC… 4         1   -0.0562      0.367      0.105      0.0590    0.0609 </span>
 <span class="co">#&gt; # … with 2,889 more rows</span></code></pre></div>
 <p>Now we can interrogate the object as if it was a regular tibble data frame.</p>
 <div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">pbmc_tidy</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">label</span><span class="op">)</span>
 <span class="co">#&gt; tidySingleCellExperiment says: A data frame is returned for independent data analysis.</span>
-<span class="co">#&gt; # A tibble: 11 x 2</span>
+<span class="co">#&gt; # A tibble: 13 x 2</span>
 <span class="co">#&gt;    label     n</span>
 <span class="co">#&gt;    &lt;fct&gt; &lt;int&gt;</span>
-<span class="co">#&gt;  1 1       479</span>
-<span class="co">#&gt;  2 2       797</span>
-<span class="co">#&gt;  3 3       501</span>
-<span class="co">#&gt;  4 4       351</span>
-<span class="co">#&gt;  5 5       339</span>
-<span class="co">#&gt;  6 6        21</span>
-<span class="co">#&gt;  7 7       256</span>
-<span class="co">#&gt;  8 8        41</span>
-<span class="co">#&gt;  9 9        74</span>
-<span class="co">#&gt; 10 10       14</span>
-<span class="co">#&gt; 11 11       26</span></code></pre></div>
+<span class="co">#&gt;  1 1       464</span>
+<span class="co">#&gt;  2 2       351</span>
+<span class="co">#&gt;  3 3        15</span>
+<span class="co">#&gt;  4 4       339</span>
+<span class="co">#&gt;  5 5       449</span>
+<span class="co">#&gt;  6 6       437</span>
+<span class="co">#&gt;  7 7        21</span>
+<span class="co">#&gt;  8 8       256</span>
+<span class="co">#&gt;  9 9       412</span>
+<span class="co">#&gt; 10 10       41</span>
+<span class="co">#&gt; 11 11       74</span>
+<span class="co">#&gt; 12 12       14</span>
+<span class="co">#&gt; 13 13       26</span></code></pre></div>
 </div>
 <div id="reduce-dimensions" class="section level2">
 <h2 class="hasAnchor">
@@ -1471,7 +1473,7 @@
 <div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Reference cell types</span>
 <span class="va">blueprint</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SingleR/man/datasets.html">BlueprintEncodeData</a></span><span class="op">(</span><span class="op">)</span>
-<span class="co">#&gt; using temporary cache /tmp/Rtmp4YaIrQ/BiocFileCache</span>
+<span class="co">#&gt; using temporary cache /tmp/Rtmptvhjfn/BiocFileCache</span>
 <span class="co">#&gt; snapshotDate(): 2020-10-02</span>
 <span class="co">#&gt; see ?celldex and browseVignettes('celldex') for documentation</span>
 <span class="co">#&gt; downloading 1 resources</span>
@@ -1500,20 +1502,22 @@
   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">label</span>, <span class="va">first.labels</span><span class="op">)</span>
 
 <span class="va">cell_type</span>
-<span class="co">#&gt; # A tibble: 11 x 2</span>
+<span class="co">#&gt; # A tibble: 13 x 2</span>
 <span class="co">#&gt;    label first.labels   </span>
 <span class="co">#&gt;    &lt;chr&gt; &lt;chr&gt;          </span>
 <span class="co">#&gt;  1 1     NK cells       </span>
-<span class="co">#&gt;  2 2     Skeletal muscle</span>
-<span class="co">#&gt;  3 3     Fibroblasts    </span>
-<span class="co">#&gt;  4 4     B-cells        </span>
-<span class="co">#&gt;  5 5     Monocytes      </span>
-<span class="co">#&gt;  6 6     Smooth muscle  </span>
-<span class="co">#&gt;  7 7     NK cells       </span>
-<span class="co">#&gt;  8 8     Macrophages    </span>
-<span class="co">#&gt;  9 9     Neutrophils    </span>
-<span class="co">#&gt; 10 10    B-cells        </span>
-<span class="co">#&gt; 11 11    Monocytes</span></code></pre></div>
+<span class="co">#&gt;  2 2     B-cells        </span>
+<span class="co">#&gt;  3 3     B-cells        </span>
+<span class="co">#&gt;  4 4     Monocytes      </span>
+<span class="co">#&gt;  5 5     Fibroblasts    </span>
+<span class="co">#&gt;  6 6     Skeletal muscle</span>
+<span class="co">#&gt;  7 7     Smooth muscle  </span>
+<span class="co">#&gt;  8 8     NK cells       </span>
+<span class="co">#&gt;  9 9     Astrocytes     </span>
+<span class="co">#&gt; 10 10    Macrophages    </span>
+<span class="co">#&gt; 11 11    Neutrophils    </span>
+<span class="co">#&gt; 12 12    B-cells        </span>
+<span class="co">#&gt; 13 13    Monocytes</span></code></pre></div>
 <p>We join the cluster label dataframe to our tidySingleCellExperiment tibble.</p>
 <div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Join cell type info</span>
@@ -1526,36 +1530,38 @@
 <span class="co">#&gt; # A tibble abstraction: 2,899 x 12</span>
 <span class="co">#&gt;    cell  first.labels batch label corrected1 corrected2 corrected3 corrected4</span>
 <span class="co">#&gt;    &lt;chr&gt; &lt;chr&gt;        &lt;int&gt; &lt;chr&gt;      &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;</span>
-<span class="co">#&gt;  1 CCAG… Monocytes        1 5       -0.0645     -0.334      0.0725    -0.0560</span>
-<span class="co">#&gt;  2 ATGA… Skeletal mu…     1 2       -0.178       0.0167     0.122     -0.122 </span>
-<span class="co">#&gt;  3 TATG… NK cells         1 7       -0.0602     -0.0356    -0.126     -0.293 </span>
-<span class="co">#&gt;  4 CATA… Monocytes        1 11      -0.0761     -0.282      0.121     -0.0547</span>
-<span class="co">#&gt;  5 GAGG… NK cells         1 1       -0.0757     -0.0424    -0.0976    -0.259 </span>
-<span class="co">#&gt;  6 AGCT… Fibroblasts      1 3       -0.117      -0.0242     0.0729    -0.159 </span>
-<span class="co">#&gt;  7 TGAT… B-cells          1 4       -0.146      -0.0752     0.143     -0.0488</span>
-<span class="co">#&gt;  8 ACGA… B-cells          1 4       -0.119      -0.108      0.127     -0.0505</span>
-<span class="co">#&gt;  9 CGGC… Monocytes        1 5       -0.00951    -0.407      0.0466    -0.0804</span>
-<span class="co">#&gt; 10 ATAG… Monocytes        1 5       -0.0562     -0.367      0.105     -0.0590</span>
+<span class="co">#&gt;  1 CCAG… Monocytes        1 4       -0.0644      0.334      0.0725     0.0560</span>
+<span class="co">#&gt;  2 ATGA… Skeletal mu…     1 6       -0.178      -0.0167     0.122      0.122 </span>
+<span class="co">#&gt;  3 TATG… NK cells         1 8       -0.0602      0.0356    -0.127      0.293 </span>
+<span class="co">#&gt;  4 CATA… Monocytes        1 13      -0.0761      0.282      0.121      0.0546</span>
+<span class="co">#&gt;  5 GAGG… NK cells         1 1       -0.0757      0.0424    -0.0977     0.259 </span>
+<span class="co">#&gt;  6 AGCT… Fibroblasts      1 5       -0.117       0.0242     0.0729     0.159 </span>
+<span class="co">#&gt;  7 TGAT… B-cells          1 2       -0.146       0.0752     0.143      0.0488</span>
+<span class="co">#&gt;  8 ACGA… B-cells          1 2       -0.119       0.108      0.127      0.0505</span>
+<span class="co">#&gt;  9 CGGC… Monocytes        1 4       -0.00954     0.407      0.0466     0.0803</span>
+<span class="co">#&gt; 10 ATAG… Monocytes        1 4       -0.0562      0.367      0.105      0.0590</span>
 <span class="co">#&gt; # … with 2,889 more rows, and 4 more variables: corrected5 &lt;dbl&gt;, UMAP1 &lt;dbl&gt;,</span>
 <span class="co">#&gt; #   UMAP2 &lt;dbl&gt;, UMAP3 &lt;dbl&gt;</span></code></pre></div>
 <p>We can easily summarise the results. For example, we can see how cell type classification overlaps with cluster classification.</p>
 <div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">pbmc_tidy</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">label</span>, <span class="va">first.labels</span><span class="op">)</span>
 <span class="co">#&gt; tidySingleCellExperiment says: A data frame is returned for independent data analysis.</span>
-<span class="co">#&gt; # A tibble: 11 x 3</span>
+<span class="co">#&gt; # A tibble: 13 x 3</span>
 <span class="co">#&gt;    label first.labels        n</span>
 <span class="co">#&gt;    &lt;chr&gt; &lt;chr&gt;           &lt;int&gt;</span>
-<span class="co">#&gt;  1 1     NK cells          479</span>
-<span class="co">#&gt;  2 10    B-cells            14</span>
-<span class="co">#&gt;  3 11    Monocytes          26</span>
-<span class="co">#&gt;  4 2     Skeletal muscle   797</span>
-<span class="co">#&gt;  5 3     Fibroblasts       501</span>
-<span class="co">#&gt;  6 4     B-cells           351</span>
-<span class="co">#&gt;  7 5     Monocytes         339</span>
-<span class="co">#&gt;  8 6     Smooth muscle      21</span>
-<span class="co">#&gt;  9 7     NK cells          256</span>
-<span class="co">#&gt; 10 8     Macrophages        41</span>
-<span class="co">#&gt; 11 9     Neutrophils        74</span></code></pre></div>
+<span class="co">#&gt;  1 1     NK cells          464</span>
+<span class="co">#&gt;  2 10    Macrophages        41</span>
+<span class="co">#&gt;  3 11    Neutrophils        74</span>
+<span class="co">#&gt;  4 12    B-cells            14</span>
+<span class="co">#&gt;  5 13    Monocytes          26</span>
+<span class="co">#&gt;  6 2     B-cells           351</span>
+<span class="co">#&gt;  7 3     B-cells            15</span>
+<span class="co">#&gt;  8 4     Monocytes         339</span>
+<span class="co">#&gt;  9 5     Fibroblasts       449</span>
+<span class="co">#&gt; 10 6     Skeletal muscle   437</span>
+<span class="co">#&gt; 11 7     Smooth muscle      21</span>
+<span class="co">#&gt; 12 8     NK cells          256</span>
+<span class="co">#&gt; 13 9     Astrocytes        412</span></code></pre></div>
 </div>
 </div>
 <div id="pseudobulk-analyses" class="section level2">

@@ -787,6 +787,45 @@ pbmc_tidy
 
 A key quality control step performed in single cell analysis is assessment of the proportion of mitochondrial transcripts. A high mitochondrial count can indicate the cell is dead or dying and is thus poor quality. A powerful combination of tools we can use with tidySingleCellExperiment is tidyverse's [nest](https://rstudio-education.github.io/tidyverse-cookbook/transform-tables.html#nest-a-data-frame) and `map`. This enables us to easily perform independent analyses on subsets of the data. For example, we can nest by dataset and use map to iterate the analysis of mitochondrial content across each dataset.
 
+### Nesting
+
+```{r}
+
+my_tibble = 
+  tibble(
+  label = c("a","a","a","a","a","b","b","b","b","b" ),
+  value = 1:10
+)
+
+my_tibble
+
+my_tibble_nested = 
+  my_tibble %>%
+  nest(data = value)
+
+my_tibble_nested
+
+# Summarise
+my_tibble_nested %>%
+  mutate(average = map_dbl(data, ~ mean(.x$value)))
+  
+# Summarise + filter
+my_tibble_nested %>%
+  mutate(average = map_dbl(data, ~ mean(.x$value))) %>%
+  filter(average == max(average)) %>%
+  unnest(data)
+
+# Summarise + update
+my_tibble_nested %>%
+  mutate(average = map_dbl(data, ~ mean(.x$value))) %>%
+  mutate(data = map2(data, average, ~ .x - .y )) %>%
+  unnest(data)
+
+
+```
+
+
+
 ```{r}
 # Get chromosomal location for gene symbols
 location <- mapIds(

@@ -19,16 +19,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{css, echo = FALSE}
-# Formatting for polls
-.poll {
-background-color: #fff4d4;
-}
-.poll code {
-	background-color: #fff4d4;
-}
-```
-
 # Background
 
 Background information and setup instructions for this workshop can be found [here](https://stemangiola.github.io/bioceurope2020_tidytranscriptomics/articles/background.html).
@@ -274,11 +264,6 @@ counts_scal_PCA <-
   reduce_dimensions(method = "PCA")
 ```
 
-```{poll_4 class.source="poll"}
-Poll: What fraction of variance is explained by PC3?
-      See ?reduce_dimensions for how to get additional dimensions.
-```
-
 This joins the result to the counts object.
 
 ```{r}
@@ -419,11 +404,6 @@ de_all %>%
   summarise(num_de = n_distinct(feature))
 ```
 
-
-```{poll_7 class.source="poll"}
-Which method detects the most differentially abundant transcripts, p value adjusted for multiple testing <  0.05 (FDR, adj.P.Val, padj)?
-```
-
 ### Single method
 
 If we just wanted to run one differential testing method we could do that. The default method is edgeR quasi-likelihood.
@@ -455,17 +435,6 @@ qlf <- glmQLFTest(fit, coef=2)
 
 ## Plots after testing for differentially expressed
 
-We'll extract the symbols for a few top genes (by P value) to use in some of the plots we will make.
-
-```{r}
-topgenes_symbols <-
-  counts_de %>%
-  pivot_transcript() %>%
-  arrange(PValue) %>%
-  head(6) %>%
-  pull(symbol)
-```
-
 ### Volcano plots
 
 Volcano plots are a useful genome-wide plot for checking that the analysis looks good. Volcano plots enable us to visualise the significance of change (p-value) versus the fold change (logFC). Highly significant genes are towards the top of the plot. We can also colour significant genes (e.g. genes with false-discovery rate < 0.05)
@@ -480,6 +449,18 @@ counts_de %>%
 ```
 
 A more informative plot, integrating some of the packages in tidyverse.
+
+
+We'll extract the symbols for a few top genes (by P value) to use in some of the plots we will make.
+
+```{r}
+topgenes_symbols <-
+  counts_de %>%
+  pivot_transcript() %>%
+  arrange(PValue) %>%
+  head(6) %>%
+  pull(symbol)
+```
 
 ```{r out.width = "70%", warning=FALSE}
 counts_de %>%
@@ -582,10 +563,6 @@ BRCA_cell_type_long %>%
   geom_point(color = "red") +
   ggrepel::geom_text_repel(size = 3) +
   custom_theme
-```
-
-```{poll_8 class.source="poll"}
-Poll: What is the most abundant cell type overall in BRCA samples?
 ```
 
 ## Key Points
